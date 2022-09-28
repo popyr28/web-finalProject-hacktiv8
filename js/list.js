@@ -13,6 +13,12 @@ function load_storage(){
     display_all('*')
 }
 
+function getLocal(val, id){
+    var temp = JSON.parse(localStorage.getItem(id))
+    temp[1] = val
+    localStorage.setItem(id, JSON.stringify(temp))
+}
+
 function check_list(id){
     const checkbox = document.getElementById(`flexCheck${id}`)
     const labelCheck = document.getElementById(`flexLabel${id}`)
@@ -22,106 +28,88 @@ function check_list(id){
         if (checkbox.checked){
             labelCheck.style.textDecoration = 'line-through'
             wedding_list[id][1] = true
-            var temp = JSON.parse(localStorage.getItem(id))
-            temp[1] = true
-            localStorage.setItem(id, JSON.stringify(temp))
+            getLocal(true, id)
         } else {
             labelCheck.style.textDecoration = 'none'
             wedding_list[id][1] = false
-            var temp = JSON.parse(localStorage.getItem(id))
-            temp[1] = false
-            localStorage.setItem(id, JSON.stringify(temp))
+            getLocal(false, id)
         }
     })
 
     wedding_list[id][1] = true
-    var temp = JSON.parse(localStorage.getItem(id))
-    temp[1] = true
-    localStorage.setItem(id, JSON.stringify(temp))
+    getLocal(true, id)
 }
 
-function display_list(sign){
+function display_list(index_sign, sign){
 	var all_list = document.getElementById("list-group")
 	all_list.innerHTML = ""
-	
     if(sign === '*'){
-        Object.keys(wedding_list).forEach(list => {
-            if(wedding_list[list][1] == true){
-                all_list.innerHTML += `
-                    <div class="form-check" id="list-item${list}">
-                        <input class="form-check-input col-2" type="checkbox" value="" checked id="flexCheck${list}" onclick="check_list(${list})">
-                        <label class="form-check-label col-8" for="flexCheckDefault" id="flexLabel${list}">
-                            ${wedding_list[list][0]}
-                        </label>
-                        <span class="col-2"><a href="#" onclick="delete_list(${list})"><i class="fa-solid fa-xmark"></i></a></span>
-                    </div>
-                `
-                check_list(list) //necessary to call because if load it will save check without click button
-            }else{
-                all_list.innerHTML += `
-                    <div class="form-check" id="list-item${list}">
-                        <input class="form-check-input col-2" type="checkbox" value="" id="flexCheck${list}" onclick="check_list(${list})">
-                        <label class="form-check-label col-8" for="flexCheckDefault" id="flexLabel${list}">
-                            ${wedding_list[list][0]}
-                        </label>
-                        <span class="col-2"><a onclick="delete_list(${list})"><i class="fa-solid fa-xmark"></i></a></span>
-                    </div>
-                ` 
-            }
-        });
-    }else if(sign == 1){
-        Object.keys(wedding_list).forEach(list => {
-            if(wedding_list[list][1] == true){
-                all_list.innerHTML += `
-                    <div class="form-check" id="list-item${list}">
-                        <input class="form-check-input col-2" type="checkbox" value="" checked id="flexCheck${list}" onclick="check_list(${list})">
-                        <label class="form-check-label col-8" for="flexCheckDefault" id="flexLabel${list}">
-                            ${wedding_list[list][0]}
-                        </label>
-                        <span class="col-2"><a href="#" onclick="delete_list(${list})"><i class="fa-solid fa-xmark"></i></a></span>
-                    </div>
-                `
-                check_list(list)
-            }else{
-                
-            }
-        });
-    }else if(sign == 0){
-        Object.keys(wedding_list).forEach(list => {
-            if(wedding_list[list][1] == false){
-                all_list.innerHTML += `
-                    <div class="form-check" id="list-item${list}">
-                        <input class="form-check-input col-2" type="checkbox" value="" id="flexCheck${list}" onclick="check_list(${list})">
-                        <label class="form-check-label col-8" for="flexCheckDefault" id="flexLabel${list}">
-                            ${wedding_list[list][0]}
-                        </label>
-                        <span class="col-2"><a href="#" onclick="delete_list(${list})"><i class="fa-solid fa-xmark"></i></a></span>
-                    </div>
-                `
-            }
-        });
+        index_sign.forEach(key => {
+            all_list.innerHTML += `
+                <div class="form-check" id="list-item${key[0]}">
+                    <input class="form-check-input col-2" type="checkbox" value="" ${key[1]} id="flexCheck${key[0]}" onclick="check_list(${key[0]})">
+                    <label class="form-check-label col-8" for="flexCheckDefault" id="flexLabel${key[0]}">
+                        ${wedding_list[key[0]][0]}
+                    </label>
+                    <span class="col-2"><a onclick="delete_list(${key[0]})"><i class="fa-solid fa-xmark"></i></a></span>
+                </div>
+            `
+            key[1] == "checked" ? check_list(key[0]): ""
+        })
     }else{
-
+        console.log("masuk else");
+        index_sign.forEach(key => {
+            all_list.innerHTML += `
+                <div class="form-check" id="list-item${key}">
+                    <input class="form-check-input col-2" type="checkbox" value="" ${sign} id="flexCheck${key}" onclick="check_list(${key})">
+                    <label class="form-check-label col-8" for="flexCheckDefault" id="flexLabel${key}">
+                        ${wedding_list[key][0]}
+                    </label>
+                    <span class="col-2"><a onclick="delete_list(${key})"><i class="fa-solid fa-xmark"></i></a></span>
+                </div>
+            `
+            sign == "checked" ? check_list(key) : ""
+        })
     }
-	
+}
+
+function isChecked(val){
+    var listConvert = Object.keys(wedding_list).map((key) => [Number(key), wedding_list[key]]);
+    const index_arr = []
+    if (val == "all"){
+        listConvert.forEach(word => {
+            word[1][1] == true ? index_arr.push([word[0], "checked"]) : index_arr.push([word[0], ""])
+        })
+    } else {
+        const result = listConvert.filter(item => item[1][1] == val);
+        result.forEach(item => {
+            index_arr.push(item[0])
+        })
+    }
+    return index_arr
 }
 
 function display_all(sign){
-    display_list(sign)
+    var index_arr = isChecked("all")
+    display_list(index_arr, sign)
     document.getElementById('all').classList.add('active')
     document.getElementById('checked').classList.remove('active')
     document.getElementById('uncheck').classList.remove('active')
     }
 
 function display_checked(sign){
-    display_list(sign)
+    var index_arr = isChecked(true)
+    console.log("true"+index_arr);
+    display_list(index_arr, sign)
     document.getElementById('checked').classList.add('active')
     document.getElementById('uncheck').classList.remove('active')
     document.getElementById('all').classList.remove('active')
 }
 
 function display_onGo(sign){
-    display_list(sign)
+    var index_arr = isChecked(false)
+    console.log("false"+index_arr);
+    display_list(index_arr, sign)
     document.getElementById('uncheck').classList.add('active')
     document.getElementById('checked').classList.remove('active')
     document.getElementById('all').classList.remove('active')
@@ -151,23 +139,22 @@ function add_list(sign){
             }
             wedding_list[key] = [list, false]
             localStorage.setItem(key, JSON.stringify(wedding_list[key]))
-            display_list(sign)
+            display_all(sign)
             inputText.value = ''
-        }else if((exist[0] == true) && (wedding_list[exist[1]][1] == true)){
+        } else if((exist[0] == true) && (wedding_list[exist[1]][1] == true)){
             if (key in wedding_list){
                 key = key+1
             }
             wedding_list[key] = [list, false]
             localStorage.setItem(key, JSON.stringify(wedding_list[key]))
-            display_list(sign)
+            display_all(sign)
             inputText.value = ''
-        }else{
+        } else {
             alert("Your task is already on checklist")
         }
-    }else{
-
+    } else {
+        
     }
-    
 }
 
 function shift_list(){
@@ -180,7 +167,7 @@ function shift_list(){
             wedding_list[key] = list
             delete wedding_list[key+1]
 			localStorage.removeItem(key+1)
-        }else{
+        } else {
             continue
         }
     }
